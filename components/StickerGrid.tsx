@@ -76,20 +76,61 @@ export default function StickerGrid({ userId }: { userId: string }) {
 
   // Generador de texto para WhatsApp
   const shareProgress = () => {
-    const missing: string[] = [];
-    const dupes: string[] = [];
+    let missingText = "";
+    let duplicatesText = "";
 
-    for (let i = 1; i <= TOTAL_STICKERS; i++) {
-      const id = i.toString();
-      const s = stickers[id];
-      if (!s || !s.collected) missing.push(id);
-      else if (s.duplicates > 0) dupes.push(`${id}(x${s.duplicates})`);
+    // Iteramos por cada sección para agrupar las láminas
+    ALBUM_SECTIONS.forEach((section) => {
+        const sectionMissing: string[] = [];
+        const sectionDuplicates: string[] = [];
+
+        // Recorremos el rango de la sección
+        for (let i = 0; i <= (section.end - section.start); i++) {
+        const globalId = (section.start + i).toString();
+        const relativeId = section.id === "FWC" ? i : i + 1;
+        const displayLabel = `${section.id}${relativeId}`;
+        
+        const s = stickers[globalId];
+
+        if (!s || !s.collected) {
+            sectionMissing.push(displayLabel);
+        } else if (s.duplicates > 0) {
+            sectionDuplicates.push(`${displayLabel}(x${s.duplicates})`);
+        }
+        }
+
+        // Si la sección tiene faltantes, agregamos el encabezado de sección
+        if (sectionMissing.length > 0) {
+        missingText += `📍 *${section.name}:* ${sectionMissing.join(", ")}\n`;
+        }
+
+        // Si la sección tiene repetidas, agregamos el encabezado
+        if (sectionDuplicates.length > 0) {
+        duplicatesText += `📍 *${section.name}:* ${sectionDuplicates.join(", ")}\n`;
+        }
+    });
+
+    // Construcción del mensaje final
+    const fullText = [
+        `🏆 *MI ÁLBUM MUNDIAL 2026*`,
+        `📊 *Progreso:* ${progressPercent}% (${collectedCount}/${TOTAL_STICKERS})`,
+        `__________________________`,
+        `❌ *ME FALTAN:*`,
+        missingText || "¡Ya no me falta ninguna! 🎉",
+        `__________________________`,
+        `🔄 *REPETIDAS:*`,
+        duplicatesText || "No tengo repetidas para cambio.",
+        `__________________________`,
+        `📱 _Generado con mi App Mundial 2026_`
+    ].join("\n");
+
+    // Copiar al portapapeles
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(fullText)
+        .then(() => alert("¡Lista organizada por equipos copiada!"))
+        .catch((err) => console.error("Error al copiar:", err));
     }
-
-    const text = `🏆 *Mundial 2026 - Mis Láminas*\n\n❌ *Faltan:* ${missing.join(", ")}\n\n✅ *Repes:* ${dupes.join(", ")}`;
-    navigator.clipboard.writeText(text);
-    alert("¡Lista copiada para WhatsApp!");
-  };
+    };
 
   const collectedCount = Object.values(stickers).filter(s => s.collected).length;
   const progressPercent = Math.round((collectedCount / TOTAL_STICKERS) * 100);
