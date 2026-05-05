@@ -163,7 +163,7 @@ export default function StickerGrid({ userId }: { userId: string }) {
       </div>
 
       {/* Navegación de Secciones */}
-      <nav className="sticky top-0 z-10 bg-gray-50/80 backdrop-blur-md py-3 mb-4 overflow-x-auto flex gap-2 no-scrollbar">
+      <nav className="sticky top-0 z-10 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md py-3 px-1 mb-4 overflow-x-auto flex gap-2 no-scrollbar border-b border-gray-200 dark:border-slate-800">
         {ALBUM_SECTIONS.map((section) => (
           <button
             key={section.id}
@@ -171,10 +171,10 @@ export default function StickerGrid({ userId }: { userId: string }) {
               setActiveSection(section.id);
               document.getElementById(section.id)?.scrollIntoView({ behavior: 'smooth' });
             }}
-            className={`px-4 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap transition-all
-              ${activeSection === section.id 
-                ? "bg-gray-800 text-white shadow-lg" 
-                : "bg-white text-gray-500 border border-gray-200"}`}
+            className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase transition-all
+                ${activeSection === section.id 
+                ? "bg-blue-600 text-white shadow-lg shadow-blue-500/30 scale-105" 
+                : "bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400"}`}
           >
             {section.name}
           </button>
@@ -202,26 +202,22 @@ export default function StickerGrid({ userId }: { userId: string }) {
                     
                     return (
                         <button
-                        key={globalId}
-                        onClick={() => toggleSticker(globalId)}
-                        onContextMenu={(e) => handleSubtract(e, globalId)}
-                        className={`
-                            relative h-12 flex items-center justify-center rounded-lg transition-all active:scale-95
-                            ${data.collected 
-                            ? "bg-blue-600 text-white shadow-md border-b-4 border-blue-800" 
-                            : "bg-white text-gray-400 border border-gray-200 hover:border-blue-200"}
-                        `}
+                            key={globalId}
+                            onClick={() => toggleSticker(globalId)}
+                            onContextMenu={(e) => handleSubtract(e, globalId)}
+                            className={`
+                                relative h-14 flex items-center justify-center rounded-xl text-[10px] font-black transition-all active:scale-90
+                                ${data.collected 
+                                ? "bg-blue-600 dark:bg-blue-500 text-white shadow-md border-b-4 border-blue-800 dark:border-blue-700" 
+                                : "bg-white dark:bg-slate-800 text-slate-300 dark:text-slate-600 border border-slate-200 dark:border-slate-700 shadow-sm"}
+                            `}
                         >
-                        {/* Formato COD12 (ej: FWC0, ARG10) */}
-                        <span className="text-[10px] font-black uppercase tracking-tight">
                             {displayLabel}
-                        </span>
-                        
-                        {data.duplicates > 0 && (
-                            <span className="absolute -top-2 -right-1.5 bg-red-500 text-white text-[9px] w-5 h-5 flex items-center justify-center rounded-full border-2 border-white font-black shadow-sm">
-                            {data.duplicates}
-                            </span>
-                        )}
+                            {data.duplicates > 0 && (
+                                <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[9px] w-5 h-5 flex items-center justify-center rounded-full border-2 border-white dark:border-slate-800 font-black">
+                                {data.duplicates}
+                                </span>
+                            )}
                         </button>
                     );
                     }
