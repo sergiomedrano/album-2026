@@ -2,26 +2,17 @@
 
 @theme {
   --color-primary: #2563eb;
-  --color-dark-bg: #0f172a;
-  --color-dark-card: #1e293b;
 }
 
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0f172a;
-    --foreground: #f8fafc;
-  }
+  --background: #f8fafc; /* Un gris muy sutil para que los blancos resalten */
+  --foreground: #0f172a; /* Azul oscuro casi negro para máxima legibilidad */
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
-  transition: background-color 0.3s ease;
+  -webkit-font-smoothing: antialiased;
 }
 
 html {

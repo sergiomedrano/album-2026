@@ -163,7 +163,7 @@ export default function StickerGrid({ userId }: { userId: string }) {
       </div>
 
       {/* Navegación de Secciones */}
-      <nav className="sticky top-0 z-10 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md py-3 px-1 mb-4 overflow-x-auto flex gap-2 no-scrollbar border-b border-gray-200 dark:border-slate-800">
+      <nav className="sticky top-0 z-10 bg-gray-50 py-3 px-2 mb-4 overflow-x-auto flex gap-2 no-scrollbar border-b border-gray-200">
         {ALBUM_SECTIONS.map((section) => (
           <button
             key={section.id}
@@ -171,10 +171,10 @@ export default function StickerGrid({ userId }: { userId: string }) {
               setActiveSection(section.id);
               document.getElementById(section.id)?.scrollIntoView({ behavior: 'smooth' });
             }}
-            className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase transition-all
+            className={`px-4 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap transition-colors
                 ${activeSection === section.id 
-                ? "bg-blue-600 text-white shadow-lg shadow-blue-500/30 scale-105" 
-                : "bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400"}`}
+                ? "bg-gray-800 text-white" 
+                : "bg-white text-gray-500 border border-gray-200 hover:bg-gray-100"}`}
           >
             {section.name}
           </button>
@@ -208,13 +208,13 @@ export default function StickerGrid({ userId }: { userId: string }) {
                             className={`
                                 relative h-14 flex items-center justify-center rounded-xl text-[10px] font-black transition-all active:scale-90
                                 ${data.collected 
-                                ? "bg-blue-600 dark:bg-blue-500 text-white shadow-md border-b-4 border-blue-800 dark:border-blue-700" 
-                                : "bg-white dark:bg-slate-800 text-slate-300 dark:text-slate-600 border border-slate-200 dark:border-slate-700 shadow-sm"}
+                                ? "bg-blue-600 text-white shadow-md border-b-4 border-blue-800" 
+                                : "bg-white text-slate-400 border border-slate-200 shadow-sm hover:border-blue-300"}
                             `}
                         >
                             {displayLabel}
                             {data.duplicates > 0 && (
-                                <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[9px] w-5 h-5 flex items-center justify-center rounded-full border-2 border-white dark:border-slate-800 font-black">
+                                <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[9px] w-5 h-5 flex items-center justify-center rounded-full border-2 border-white font-black shadow-sm">
                                 {data.duplicates}
                                 </span>
                             )}
