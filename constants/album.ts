@@ -91,7 +91,7 @@ export const ALBUM_DATA = [
   {
     groupName: "Grupos J",
     sections: [
-        { id: "AGL", name: "Argelia", start: 740, end: 759 },
+        { id: "ALG", name: "Argelia", start: 740, end: 759 },
   { id: "ARG", name: "Argentina", start: 760, end: 779 },
   { id: "AUT", name: "Austria", start: 780, end: 799 },
   { id: "JOR", name: "Jordania", start: 800, end: 819 },

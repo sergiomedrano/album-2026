@@ -68,6 +68,34 @@ export default function StickerGrid({ userId }: { userId: string }) {
     setExpanded(prev => ({ ...prev, [sectionId]: !prev[sectionId] }));
   };
 
+  const getFlag = (id: string): string => {
+    const flags: Record<string, string> = {
+        // SECCIONES ESPECIALES
+        FWC: "🏆", // FIFA World Cup
+        // CONMEBOL
+        ARG: "🇦🇷", BRA: "🇧🇷", CHI: "🇨🇱", COL: "🇨🇴", URU: "🇺🇾",
+        ECU: "🇪🇨", PAR: "🇵🇾", VEN: "🇻🇪", BOL: "🇧🇴", PER: "🇵🇪",
+        // CONCACAF
+        USA: "🇺🇸", MEX: "🇲🇽", CAN: "🇨🇦", CRC: "🇨🇷", PAN: "🇵🇦",
+        JAM: "🇯🇲", HON: "🇭🇳", SLV: "🇸🇻", GUA: "🇬🇹",
+        // UEFA (Europa)
+        ESP: "🇪🇸", FRA: "🇫🇷", GER: "🇩🇪", ENG: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", ITA: "🇮🇹",
+        POR: "🇵🇹", NED: "🇳🇱", BEL: "🇧🇪", CRO: "🇭🇷", SUI: "🇨🇭",
+        DEN: "🇩🇰", SRB: "🇷🇸", POL: "🇵🇱", SCO: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", HUN: "🇭🇺",
+        AUT: "🇦🇹", TUR: "🇹🇷",
+        // AFC (Asia)
+        JPN: "🇯🇵", KOR: "🇰🇷", AUS: "🇦🇺", KSA: "🇸🇦", IRN: "🇮🇷",
+        QAT: "🇶🇦", IRQ: "🇮🇶", UZB: "🇺🇿", UAE: "🇦🇪",
+        // CAF (África)
+        MAR: "🇲🇦", SEN: "🇸🇳", NGA: "🇳🇬", EGY: "🇪🇬", TUN: "🇹🇳",
+        ALG: "🇩🇿", CMR: "🇨🇲", GHA: "🇬🇭", MLI: "🇲🇱", CIV: "🇨🇮",
+        // OFC (Oceanía)
+        NZL: "🇳🇿",
+    };
+
+    return flags[id.toUpperCase()] || "🏳️";
+  };
+
   // 4. Copiado a WhatsApp organizado
   const shareProgress = () => {
     let missingText = "";
@@ -81,15 +109,20 @@ export default function StickerGrid({ userId }: { userId: string }) {
         for (let i = 0; i <= (section.end - section.start); i++) {
           const globalId = (section.start + i).toString();
           const relativeId = section.id === "FWC" ? i : i + 1;
-          const displayLabel = `${section.id}${relativeId}`;
+          //const displayLabel = `${section.id}${relativeId}`;
+          const displayLabel = `${relativeId}`;
           const s = stickers[globalId];
 
           if (!s || !s.collected) sectionMissing.push(displayLabel);
-          else if (s.duplicates > 0) sectionDuplicates.push(`${displayLabel}(x${s.duplicates})`);
+          else if (s.duplicates == 1) sectionDuplicates.push(`${displayLabel}`);
+          else if (s.duplicates > 1) sectionDuplicates.push(`${displayLabel}(x${s.duplicates})`);
         }
 
-        if (sectionMissing.length > 0) missingText += `📍 *${section.name}:* ${sectionMissing.join(", ")}\n`;
-        if (sectionDuplicates.length > 0) duplicatesText += `📍 *${section.name}:* ${sectionDuplicates.join(", ")}\n`;
+        // OBTENEMOS LA BANDERA
+        const flag = getFlag(section.id);
+
+        if (sectionMissing.length > 0) missingText += `${flag} ${section.id}: ${sectionMissing.join(", ")}\n`;
+        if (sectionDuplicates.length > 0) duplicatesText += `${flag} ${section.id}: ${sectionDuplicates.join(", ")}\n`;
       });
     });
 
