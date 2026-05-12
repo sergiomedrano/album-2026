@@ -36,9 +36,8 @@ const getFlag = (id: string): string => {
         // OFC (Oceanía)
         NZL: "🇳🇿",
     };
-
     return flags[id.toUpperCase()] || "🏳️";
-  };
+};
 
 export default function StickerGrid({ userId }: { userId: string }) {
   const [stickers, setStickers] = useState<Record<string, StickerData>>({});
@@ -57,7 +56,7 @@ export default function StickerGrid({ userId }: { userId: string }) {
           await setDoc(docRef, { stickers: {} });
         }
       } catch (error) {
-        console.error("Error al cargar:", error);
+        console.error("Error al cargar láminas:", error);
       } finally {
         setLoading(false);
       }
@@ -132,7 +131,7 @@ export default function StickerGrid({ userId }: { userId: string }) {
     navigator.clipboard.writeText(fullText).then(() => alert("¡Lista copiada!"));
   };
 
-  if (loading) return <div className="p-10 text-center animate-pulse text-emerald-500 font-black text-[10px] uppercase tracking-widest">Cargando...</div>;
+  if (loading) return <div className="p-10 text-center animate-pulse text-emerald-500 font-black text-xs uppercase tracking-widest">Cargando...</div>;
 
   const allSections = ALBUM_DATA.flatMap(group => group.sections);
 
@@ -140,38 +139,38 @@ export default function StickerGrid({ userId }: { userId: string }) {
     <div className="w-full max-w-md mx-auto px-2 pb-28 select-none bg-gray-50 min-h-screen">
       
       {/* HEADER DE PROGRESO */}
-      <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-4 mt-4">
-        <div className="flex justify-between items-end mb-2">
+      <div className="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 mb-4 mt-4">
+        <div className="flex justify-between items-end mb-3">
           <div>
-            <h3 className="text-lg font-black text-gray-800 tracking-tight leading-none mb-1">Tu Progreso</h3>
+            <h3 className="text-xl font-black text-gray-800 tracking-tight leading-none mb-1">Tu Progreso</h3>
             <div className="flex flex-col">
-              <span className="text-[10px] text-gray-400 font-bold uppercase">
+              <span className="text-[11px] text-gray-400 font-bold uppercase tracking-wider">
                 {collectedCount} de {TOTAL_STICKERS} láminas
               </span>
               {totalDuplicates > 0 && (
-                <span className="text-[9px] text-gray-400 font-medium italic lowercase">
-                  + {totalDuplicates} repetidas en total
+                <span className="text-[10px] text-gray-400 font-medium italic lowercase">
+                  + {totalDuplicates} repetidas totales
                 </span>
               )}
             </div>
           </div>
-          <span className="text-2xl font-black text-emerald-500 leading-none">{progressPercent}%</span>
+          <span className="text-3xl font-black text-emerald-500 leading-none">{progressPercent}%</span>
         </div>
-        <div className="w-full bg-gray-100 h-2.5 rounded-full overflow-hidden mb-3">
+        <div className="w-full bg-gray-100 h-3 rounded-full overflow-hidden mb-4">
           <div className="bg-emerald-500 h-full transition-all duration-1000 ease-out" style={{ width: `${progressPercent}%` }} />
         </div>
-        <button onClick={shareProgress} className="w-full bg-emerald-500 text-white text-[10px] font-black py-3 rounded-xl shadow-md shadow-emerald-500/10 uppercase tracking-widest active:scale-95 transition-all">
-          Copiar lista para WhatsApp
+        <button onClick={shareProgress} className="w-full bg-emerald-500 text-white text-[11px] font-black py-3.5 rounded-2xl shadow-lg shadow-emerald-500/10 uppercase tracking-widest active:scale-95 transition-all">
+          Copiar a Whatsapp
         </button>
       </div>
 
       {/* FILTROS DE MODO */}
-      <div className="flex bg-gray-200/50 p-1 rounded-xl mb-4">
+      <div className="flex bg-gray-200/50 p-1 rounded-2xl mb-6">
         {(["all", "missing", "dupes"] as ViewMode[]).map((mode) => (
           <button
             key={mode}
             onClick={() => setViewMode(mode)}
-            className={`flex-1 py-1.5 text-[9px] font-black uppercase rounded-lg transition-all
+            className={`flex-1 py-2 text-[10px] font-black uppercase rounded-xl transition-all
               ${viewMode === mode ? "bg-white text-gray-800 shadow-sm" : "text-gray-400"}`}
           >
             {mode === "all" ? "Todo" : mode === "missing" ? "Faltantes" : "Repetidas"}
@@ -179,8 +178,8 @@ export default function StickerGrid({ userId }: { userId: string }) {
         ))}
       </div>
 
-      {/* LISTADO DE PAÍSES */}
-      <div className="space-y-2">
+      {/* LISTADO DE PAÍSES (RESTAURADO A 4 COLUMNAS) */}
+      <div className="space-y-3">
         {allSections.map((section) => {
           const totalInSection = section.end - section.start + 1;
           const sectionStickers = Array.from({ length: totalInSection }, (_, i) => {
@@ -205,50 +204,50 @@ export default function StickerGrid({ userId }: { userId: string }) {
           const isExpanded = expanded[section.id];
 
           return (
-            <section key={section.id} className="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm">
-              <button onClick={() => toggleExpand(section.id)} className="w-full flex justify-between items-center p-3 hover:bg-gray-50 transition-colors">
+            <section key={section.id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
+              <button onClick={() => toggleExpand(section.id)} className="w-full flex justify-between items-center p-4 hover:bg-gray-50 transition-colors">
                 <div className="flex flex-col items-start">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm leading-none">{getFlag(section.id)}</span>
-                    <h2 className="text-[11px] font-black text-gray-700 uppercase tracking-tight">{section.name}</h2>
+                    <span className="text-base leading-none">{getFlag(section.id)}</span>
+                    <h2 className="text-[12px] font-black text-gray-700 uppercase tracking-tight">{section.name}</h2>
                   </div>
                   {dupsCountSec > 0 && (
-                    <span className="text-[8px] text-gray-400 italic lowercase">{dupsCountSec} repetidas</span>
+                    <span className="text-[9px] text-gray-400 italic lowercase">{dupsCountSec} repetidas</span>
                   )}
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <div className="flex flex-col items-end gap-0.5">
-                    <div className="w-12 bg-gray-100 h-1 rounded-full overflow-hidden">
-                      <div className={`h-full transition-all duration-500 ${sectionProgress === 100 ? 'bg-emerald-500' : 'bg-emerald-500/50'}`} style={{ width: `${sectionProgress}%` }} />
+                <div className="flex items-center gap-4">
+                  <div className="flex flex-col items-end gap-1">
+                    <div className="w-16 bg-gray-100 h-1.5 rounded-full overflow-hidden">
+                      <div className={`h-full transition-all duration-500 ${sectionProgress === 100 ? 'bg-emerald-500' : 'bg-emerald-400/50'}`} style={{ width: `${sectionProgress}%` }} />
                     </div>
-                    <span className={`text-[9px] font-black ${sectionProgress === 100 ? 'text-emerald-700' : 'text-gray-400'}`}>
+                    <span className={`text-[10px] font-black ${sectionProgress === 100 ? 'text-emerald-600' : 'text-gray-400'}`}>
                       {collectedCountSec}/{totalInSection}
                     </span>
                   </div>
-                  <svg className={`w-2.5 h-2.5 text-gray-300 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className={`w-3 h-3 text-gray-300 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M19 9l-7 7-7-7" />
                   </svg>
                 </div>
               </button>
 
               {isExpanded && (
-                <div className="p-3 pt-0 border-t border-gray-50">
-                  <div className="grid grid-cols-4 gap-1.5 mt-3">
+                <div className="p-4 pt-0 border-t border-gray-50">
+                  <div className="grid grid-cols-4 gap-2 mt-4">
                     {filtered.map(({ globalId, displayLabel, data }) => (
                       <button
                         key={globalId}
                         onClick={() => toggleSticker(globalId)}
                         onContextMenu={(e) => handleSubtract(e, globalId)}
                         style={{ WebkitTouchCallout: 'none' }}
-                        className={`relative h-12 flex items-center justify-center rounded-lg text-[9px] font-black transition-all active:scale-90 select-none touch-none
+                        className={`relative h-14 flex items-center justify-center rounded-xl text-[10px] font-black transition-all active:scale-90 select-none touch-none
                           ${data.collected 
-                            ? "bg-emerald-500 text-white shadow-md border-b-[3px] border-emerald-800" 
+                            ? "bg-emerald-500 text-white shadow-md border-b-4 border-emerald-700" 
                             : "bg-white text-gray-400 border border-gray-100 shadow-sm"}`}
                       >
                         {displayLabel}
                         {data.duplicates > 0 && (
-                          <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[7px] w-4 h-4 flex items-center justify-center rounded-full border border-white font-black shadow-sm">
+                          <span className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[8px] w-4.5 h-4.5 flex items-center justify-center rounded-full border-2 border-white font-black shadow-sm">
                             {data.duplicates}
                           </span>
                         )}

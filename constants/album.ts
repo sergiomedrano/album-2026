@@ -12,8 +12,8 @@ export const ALBUM_DATA = [
     sections: [
         { id: "KOR", name: "Corea del Sur", start: 20, end: 39 },
         { id: "MEX", name: "México", start: 40, end: 59 },
-        { id: "CZE", name: "República Checa", start: 60, end: 79 },
-        { id: "RSA", name: "República de Sudáfrica", start: 80, end: 99 },
+        { id: "CZE", name: "R. Checa", start: 60, end: 79 },
+        { id: "RSA", name: "R. de Sudáfrica", start: 80, end: 99 },
     ]
   },
   {
@@ -92,27 +92,27 @@ export const ALBUM_DATA = [
     groupName: "Grupos J",
     sections: [
         { id: "ALG", name: "Argelia", start: 740, end: 759 },
-  { id: "ARG", name: "Argentina", start: 760, end: 779 },
-  { id: "AUT", name: "Austria", start: 780, end: 799 },
-  { id: "JOR", name: "Jordania", start: 800, end: 819 },
+        { id: "ARG", name: "Argentina", start: 760, end: 779 },
+        { id: "AUT", name: "Austria", start: 780, end: 799 },
+        { id: "JOR", name: "Jordania", start: 800, end: 819 },
     ]
   },
   {
     groupName: "Grupos K",
     sections: [
         { id: "COL", name: "Colombia", start: 820, end: 839 },
-  { id: "POR", name: "Portugal", start: 840, end: 859 },
-  { id: "COD", name: "R. D. del Congo", start: 860, end: 879 },
-  { id: "UZB", name: "Uzbekistán", start: 880, end: 899 },
+        { id: "POR", name: "Portugal", start: 840, end: 859 },
+        { id: "COD", name: "R. D. del Congo", start: 860, end: 879 },
+        { id: "UZB", name: "Uzbekistán", start: 880, end: 899 },
     ]
   },
   {
     groupName: "Grupos L",
     sections: [
         { id: "CRO", name: "Croacia", start: 900, end: 919 },
-  { id: "GHA", name: "Ghana", start: 920, end: 939 },
-  { id: "ENG", name: "Inglaterra", start: 940, end: 959 },
-  { id: "PAN", name: "Panamá", start: 960, end: 979 },
+        { id: "GHA", name: "Ghana", start: 920, end: 939 },
+        { id: "ENG", name: "Inglaterra", start: 940, end: 959 },
+        { id: "PAN", name: "Panamá", start: 960, end: 979 },
     ]
   }
 ];

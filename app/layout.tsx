@@ -15,8 +15,11 @@ const geistMono = Geist_Mono({
 export const metadata = {
   title: "Álbum Mundial 2026",
   manifest: "/manifest.json",
-  themeColor: "#2563eb",
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Mi Álbum",
+  },
 };
 
 export default function RootLayout({
