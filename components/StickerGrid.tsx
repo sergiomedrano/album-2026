@@ -10,65 +10,9 @@ interface StickerData {
   duplicates: number;
 }
 
-export default function StickerGrid({ userId }: { userId: string }) {
-  const [stickers, setStickers] = useState<Record<string, StickerData>>({});
-  const [loading, setLoading] = useState(true);
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+type ViewMode = "all" | "missing" | "dupes";
 
-  // 1. Carga inicial de datos
-  useEffect(() => {
-    const loadStickers = async () => {
-      try {
-        const docRef = doc(db, "users", userId);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          setStickers(docSnap.data().stickers || {});
-        } else {
-          await setDoc(docRef, { stickers: {} });
-        }
-      } catch (error) {
-        console.error("Error al cargar:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadStickers();
-  }, [userId]);
-
-  // 2. Cálculos de progreso global
-  const collectedCount = Object.values(stickers).filter(s => s.collected).length;
-  const progressPercent = Math.round((collectedCount / TOTAL_STICKERS) * 100);
-
-  // 3. Funciones de actualización
-  const updateLocalAndRemote = async (id: string, data: StickerData) => {
-    setStickers((prev) => ({ ...prev, [id]: data }));
-    const docRef = doc(db, "users", userId);
-    await updateDoc(docRef, { [`stickers.${id}`]: data });
-  };
-
-  const toggleSticker = (id: string) => {
-    const current = stickers[id] || { collected: false, duplicates: 0 };
-    const updated = !current.collected 
-      ? { collected: true, duplicates: 0 } 
-      : { ...current, duplicates: current.duplicates + 1 };
-    updateLocalAndRemote(id, updated);
-  };
-
-  const handleSubtract = (e: React.MouseEvent, id: string) => {
-    e.preventDefault();
-    const current = stickers[id];
-    if (!current || !current.collected) return;
-    const updated = current.duplicates > 0 
-      ? { ...current, duplicates: current.duplicates - 1 } 
-      : { collected: false, duplicates: 0 };
-    updateLocalAndRemote(id, updated);
-  };
-
-  const toggleExpand = (sectionId: string) => {
-    setExpanded(prev => ({ ...prev, [sectionId]: !prev[sectionId] }));
-  };
-
-  const getFlag = (id: string): string => {
+const getFlag = (id: string): string => {
     const flags: Record<string, string> = {
         // SECCIONES ESPECIALES
         FWC: "🏆", // FIFA World Cup
@@ -96,36 +40,83 @@ export default function StickerGrid({ userId }: { userId: string }) {
     return flags[id.toUpperCase()] || "🏳️";
   };
 
-  // 4. Copiado a WhatsApp organizado
+export default function StickerGrid({ userId }: { userId: string }) {
+  const [stickers, setStickers] = useState<Record<string, StickerData>>({});
+  const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [viewMode, setViewMode] = useState<ViewMode>("all");
+
+  useEffect(() => {
+    const loadStickers = async () => {
+      try {
+        const docRef = doc(db, "users", userId);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setStickers(docSnap.data().stickers || {});
+        } else {
+          await setDoc(docRef, { stickers: {} });
+        }
+      } catch (error) {
+        console.error("Error al cargar:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadStickers();
+  }, [userId]);
+
+  const collectedCount = Object.values(stickers).filter(s => s.collected).length;
+  const progressPercent = Math.round((collectedCount / TOTAL_STICKERS) * 100);
+  const totalDuplicates = Object.values(stickers).reduce((acc, s) => acc + (s.duplicates || 0), 0);
+
+  const toggleExpand = (sectionId: string) => {
+    setExpanded(prev => ({ ...prev, [sectionId]: !prev[sectionId] }));
+  };
+
+  const updateLocalAndRemote = async (id: string, data: StickerData) => {
+    setStickers((prev) => ({ ...prev, [id]: data }));
+    const docRef = doc(db, "users", userId);
+    await updateDoc(docRef, { [`stickers.${id}`]: data });
+  };
+
+  const toggleSticker = (id: string) => {
+    const current = stickers[id] || { collected: false, duplicates: 0 };
+    const updated = !current.collected 
+      ? { collected: true, duplicates: 0 } 
+      : { ...current, duplicates: current.duplicates + 1 };
+    updateLocalAndRemote(id, updated);
+  };
+
+  const handleSubtract = (e: React.MouseEvent, id: string) => {
+    e.preventDefault();
+    const current = stickers[id];
+    if (!current || !current.collected) return;
+    const updated = current.duplicates > 0 
+      ? { ...current, duplicates: current.duplicates - 1 } 
+      : { collected: false, duplicates: 0 };
+    updateLocalAndRemote(id, updated);
+  };
+
   const shareProgress = () => {
     let missingText = "";
     let duplicatesText = "";
-
     ALBUM_DATA.forEach((group) => {
       group.sections.forEach((section) => {
         const sectionMissing: string[] = [];
         const sectionDuplicates: string[] = [];
-
         for (let i = 0; i <= (section.end - section.start); i++) {
           const globalId = (section.start + i).toString();
           const relativeId = section.id === "FWC" ? i : i + 1;
-          //const displayLabel = `${section.id}${relativeId}`;
-          const displayLabel = `${relativeId}`;
+          const displayLabel = `${section.id}${relativeId}`;
           const s = stickers[globalId];
-
           if (!s || !s.collected) sectionMissing.push(displayLabel);
-          else if (s.duplicates == 1) sectionDuplicates.push(`${displayLabel}`);
-          else if (s.duplicates > 1) sectionDuplicates.push(`${displayLabel}(x${s.duplicates})`);
+          else if (s.duplicates > 0) sectionDuplicates.push(`${displayLabel}(x${s.duplicates})`);
         }
-
-        // OBTENEMOS LA BANDERA
         const flag = getFlag(section.id);
-
-        if (sectionMissing.length > 0) missingText += `${flag} ${section.id}: ${sectionMissing.join(", ")}\n`;
-        if (sectionDuplicates.length > 0) duplicatesText += `${flag} ${section.id}: ${sectionDuplicates.join(", ")}\n`;
+        if (sectionMissing.length > 0) missingText += `${flag} *${section.name}:* ${sectionMissing.join(", ")}\n`;
+        if (sectionDuplicates.length > 0) duplicatesText += `${flag} *${section.name}:* ${sectionDuplicates.join(", ")}\n`;
       });
     });
-
     const fullText = [
       `🏆 *MI ÁLBUM MUNDIAL 2026*`,
       `📊 *Progreso:* ${progressPercent}% (${collectedCount}/${TOTAL_STICKERS})`,
@@ -138,116 +129,137 @@ export default function StickerGrid({ userId }: { userId: string }) {
       `__________________________`,
       `📱 _Generado con Álbum Mundial 2026_`
     ].join("\n");
-
     navigator.clipboard.writeText(fullText).then(() => alert("¡Lista copiada!"));
   };
 
-  if (loading) return <div className="p-10 text-center animate-pulse text-green-600 font-black uppercase tracking-widest text-xs">Cargando Álbum...</div>;
+  if (loading) return <div className="p-10 text-center animate-pulse text-emerald-500 font-black text-[10px] uppercase tracking-widest">Cargando...</div>;
+
+  const allSections = ALBUM_DATA.flatMap(group => group.sections);
 
   return (
-    <div className="w-full max-w-md mx-auto px-2 pb-24">
+    <div className="w-full max-w-md mx-auto px-2 pb-28 select-none bg-gray-50 min-h-screen">
       
-      {/* CARD DE PROGRESO TOTAL */}
-      <div className="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 mb-8 mt-4">
-        <div className="flex justify-between items-end mb-3">
+      {/* HEADER DE PROGRESO */}
+      <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-4 mt-4">
+        <div className="flex justify-between items-end mb-2">
           <div>
-            <h3 className="text-xl font-black text-gray-800 tracking-tight">Tu Progreso</h3>
-            <p className="text-[11px] text-gray-400 font-bold uppercase tracking-wider">
-              {collectedCount} de {TOTAL_STICKERS} láminas pegadas
-            </p>
+            <h3 className="text-lg font-black text-gray-800 tracking-tight leading-none mb-1">Tu Progreso</h3>
+            <div className="flex flex-col">
+              <span className="text-[10px] text-gray-400 font-bold uppercase">
+                {collectedCount} de {TOTAL_STICKERS} láminas
+              </span>
+              {totalDuplicates > 0 && (
+                <span className="text-[9px] text-gray-400 font-medium italic lowercase">
+                  + {totalDuplicates} repetidas en total
+                </span>
+              )}
+            </div>
           </div>
-          <span className="text-3xl font-black text-green-500 leading-none">{progressPercent}%</span>
+          <span className="text-2xl font-black text-emerald-500 leading-none">{progressPercent}%</span>
         </div>
-        <div className="w-full bg-gray-100 h-3 rounded-full overflow-hidden mb-5">
-          <div className="bg-green-500 h-full transition-all duration-1000 ease-out" style={{ width: `${progressPercent}%` }} />
+        <div className="w-full bg-gray-100 h-2.5 rounded-full overflow-hidden mb-3">
+          <div className="bg-emerald-500 h-full transition-all duration-1000 ease-out" style={{ width: `${progressPercent}%` }} />
         </div>
-        <button onClick={shareProgress} className="w-full bg-green-500 active:bg-green-600 text-white text-[11px] font-black py-3.5 rounded-2xl transition-colors shadow-lg shadow-green-500/20 uppercase tracking-widest">
+        <button onClick={shareProgress} className="w-full bg-emerald-500 text-white text-[10px] font-black py-3 rounded-xl shadow-md shadow-emerald-500/10 uppercase tracking-widest active:scale-95 transition-all">
           Copiar lista para WhatsApp
         </button>
       </div>
 
-      {/* LISTADO POR GRUPOS */}
-      <div className="space-y-10">
-        {ALBUM_DATA.map((group) => (
-          <div key={group.groupName} className="space-y-4">
-            <h2 className="text-[13px] font-black text-gray-800 uppercase tracking-[0.2em] px-2 flex items-center gap-2">
-              <span className="w-1.5 h-4 bg-green-500 rounded-full"></span>
-              {group.groupName}
-            </h2>
-
-            <div className="space-y-3">
-              {group.sections.map((section) => {
-                const isExpanded = expanded[section.id];
-                const totalInSection = section.end - section.start + 1;
-                let collectedInSection = 0;
-                for (let i = section.start; i <= section.end; i++) {
-                  if (stickers[i.toString()]?.collected) collectedInSection++;
-                }
-                const sectionProgress = Math.round((collectedInSection / totalInSection) * 100);
-                const isComplete = sectionProgress === 100;
-
-                return (
-                  <section key={section.id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
-                    {/* Header Acordeón */}
-                    <button onClick={() => toggleExpand(section.id)} className="w-full flex justify-between items-center p-4 hover:bg-gray-50 transition-colors">
-                      <div className="flex flex-col items-start gap-1">
-                        <h3 className="text-[12px] font-black text-gray-700 uppercase leading-none">{section.name}</h3>
-                      </div>
-
-                      <div className="flex items-center gap-4">
-                        {/* Indicador de láminas y barra */}
-                        <div className="flex flex-col items-end gap-1">
-                          <div className="w-16 bg-gray-100 h-1.5 rounded-full overflow-hidden">
-                            <div className={`h-full transition-all duration-500 ${isComplete ? 'bg-green-500' : 'bg-green-400'}`} style={{ width: `${sectionProgress}%` }} />
-                          </div>
-                          <span className={`text-[10px] font-black ${isComplete ? 'text-green-600' : 'text-gray-400'}`}>
-                            {collectedInSection}/{totalInSection} láminas
-                          </span>
-                        </div>
-                        <svg className={`w-3 h-3 text-gray-300 transition-transform ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </div>
-                    </button>
-
-                    {/* Grilla Desplegable */}
-                    {isExpanded && (
-                      <div className="p-4 pt-0">
-                        <div className="grid grid-cols-4 gap-2 border-t border-gray-50 pt-4">
-                          {Array.from({ length: totalInSection }, (_, i) => {
-                            const globalId = (section.start + i).toString();
-                            const relativeId = section.id === "FWC" ? i : i + 1;
-                            const displayLabel = `${section.id}${relativeId}`;
-                            const data = stickers[globalId] || { collected: false, duplicates: 0 };
-                            
-                            return (
-                              <button
-                                key={globalId}
-                                onClick={() => toggleSticker(globalId)}
-                                onContextMenu={(e) => handleSubtract(e, globalId)}
-                                className={`relative h-14 flex items-center justify-center rounded-xl text-[10px] font-black transition-all active:scale-95
-                                  ${data.collected 
-                                    ? "bg-green-500 text-white shadow-md border-b-4 border-green-700" 
-                                    : "bg-white text-gray-400 border border-gray-100 shadow-sm"}`}
-                              >
-                                {displayLabel}
-                                {data.duplicates > 0 && (
-                                  <span className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[9px] w-5 h-5 flex items-center justify-center rounded-full border-2 border-white font-black">
-                                    {data.duplicates}
-                                  </span>
-                                )}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-                  </section>
-                );
-              })}
-            </div>
-          </div>
+      {/* FILTROS DE MODO */}
+      <div className="flex bg-gray-200/50 p-1 rounded-xl mb-4">
+        {(["all", "missing", "dupes"] as ViewMode[]).map((mode) => (
+          <button
+            key={mode}
+            onClick={() => setViewMode(mode)}
+            className={`flex-1 py-1.5 text-[9px] font-black uppercase rounded-lg transition-all
+              ${viewMode === mode ? "bg-white text-gray-800 shadow-sm" : "text-gray-400"}`}
+          >
+            {mode === "all" ? "Todo" : mode === "missing" ? "Faltantes" : "Repetidas"}
+          </button>
         ))}
+      </div>
+
+      {/* LISTADO DE PAÍSES */}
+      <div className="space-y-2">
+        {allSections.map((section) => {
+          const totalInSection = section.end - section.start + 1;
+          const sectionStickers = Array.from({ length: totalInSection }, (_, i) => {
+            const globalId = (section.start + i).toString();
+            const relativeId = section.id === "FWC" ? i : i + 1;
+            const displayLabel = `${section.id}${relativeId}`;
+            const data = stickers[globalId] || { collected: false, duplicates: 0 };
+            return { globalId, displayLabel, data };
+          });
+
+          const filtered = sectionStickers.filter(s => {
+            if (viewMode === "missing") return !s.data.collected;
+            if (viewMode === "dupes") return s.data.duplicates > 0;
+            return true;
+          });
+
+          if (filtered.length === 0) return null;
+
+          const collectedCountSec = sectionStickers.filter(s => s.data.collected).length;
+          const dupsCountSec = sectionStickers.reduce((acc, s) => acc + (s.data.duplicates || 0), 0);
+          const sectionProgress = Math.round((collectedCountSec / totalInSection) * 100);
+          const isExpanded = expanded[section.id];
+
+          return (
+            <section key={section.id} className="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm">
+              <button onClick={() => toggleExpand(section.id)} className="w-full flex justify-between items-center p-3 hover:bg-gray-50 transition-colors">
+                <div className="flex flex-col items-start">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm leading-none">{getFlag(section.id)}</span>
+                    <h2 className="text-[11px] font-black text-gray-700 uppercase tracking-tight">{section.name}</h2>
+                  </div>
+                  {dupsCountSec > 0 && (
+                    <span className="text-[8px] text-gray-400 italic lowercase">{dupsCountSec} repetidas</span>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="flex flex-col items-end gap-0.5">
+                    <div className="w-12 bg-gray-100 h-1 rounded-full overflow-hidden">
+                      <div className={`h-full transition-all duration-500 ${sectionProgress === 100 ? 'bg-emerald-500' : 'bg-emerald-500/50'}`} style={{ width: `${sectionProgress}%` }} />
+                    </div>
+                    <span className={`text-[9px] font-black ${sectionProgress === 100 ? 'text-emerald-700' : 'text-gray-400'}`}>
+                      {collectedCountSec}/{totalInSection}
+                    </span>
+                  </div>
+                  <svg className={`w-2.5 h-2.5 text-gray-300 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </button>
+
+              {isExpanded && (
+                <div className="p-3 pt-0 border-t border-gray-50">
+                  <div className="grid grid-cols-4 gap-1.5 mt-3">
+                    {filtered.map(({ globalId, displayLabel, data }) => (
+                      <button
+                        key={globalId}
+                        onClick={() => toggleSticker(globalId)}
+                        onContextMenu={(e) => handleSubtract(e, globalId)}
+                        style={{ WebkitTouchCallout: 'none' }}
+                        className={`relative h-12 flex items-center justify-center rounded-lg text-[9px] font-black transition-all active:scale-90 select-none touch-none
+                          ${data.collected 
+                            ? "bg-emerald-500 text-white shadow-md border-b-[3px] border-emerald-800" 
+                            : "bg-white text-gray-400 border border-gray-100 shadow-sm"}`}
+                      >
+                        {displayLabel}
+                        {data.duplicates > 0 && (
+                          <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[7px] w-4 h-4 flex items-center justify-center rounded-full border border-white font-black shadow-sm">
+                            {data.duplicates}
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </section>
+          );
+        })}
       </div>
     </div>
   );

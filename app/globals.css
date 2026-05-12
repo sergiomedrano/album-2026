@@ -1,21 +1,45 @@
 @import "tailwindcss";
 
-@theme {
-  --color-primary: #2563eb;
+html {
+  font-size: 12px; /* Mantener tu escala de fuente */
 }
 
 :root {
-  --background: #f8fafc; /* Un gris muy sutil para que los blancos resalten */
-  --foreground: #0f172a; /* Azul oscuro casi negro para máxima legibilidad */
+  /* Colores Oscuros de "Mi Rutina" por defecto */
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --brand-primary: #10b981;
+  --brand-primary-soft: #10b98120;
+  --brand-active-text: #064e3b;
+  --brand-muted: #6b7280;
+  --radius-custom: 12px;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-brand: var(--brand-primary);
+  --color-brand-soft: var(--brand-primary-soft);
+  --radius-brand: var(--radius-custom);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
 }
 
 body {
-  background-color: var(--background);
+  background: var(--background);
   color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
-html {
-  font-size: 14px;
-  overscroll-behavior-y: contain;
+.custom-calendar .react-calendar {
+  background: transparent !important;
+  border: none !important;
+  font-family: inherit !important;
+  width: 100%;
 }
